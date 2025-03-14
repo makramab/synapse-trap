@@ -18,7 +18,7 @@ This project leverages honeypots as a cost-effective method for intrusion data c
 
 ## Agents
 
-1. **Attraction Agent (Filter):** Creates enticing signals to attract attackers.
+1. **Attraction Agent:** Creates enticing signals to attract attackers.
 2. **Engagement Agent:** Mimics real system behavior to keep attackers engaged.
 3. **Analysis Agent:** Analyzes attacker behavior and infers their intentions.
 4. **Alert Agent:** Notifies system administrators of potential threats.
@@ -26,6 +26,9 @@ This project leverages honeypots as a cost-effective method for intrusion data c
 ## Sequence Diagram
 
 ```mermaid
+---
+title: Multi-Agent Interaction and Attack Analysis Sequence
+---
 sequenceDiagram
     participant Attacker
     participant Attraction Agent
