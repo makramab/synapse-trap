@@ -8,6 +8,8 @@ The primary goal is to gain deep insights into the types of attacks being launch
 
 This project leverages honeypots as a cost-effective method for intrusion data collection, providing a valuable alternative to the expensive process of gathering data from live incidents.
 
+All experimentation will be done using cloud infrastructure to ensure scalability, flexibility, and cost-effectiveness. The project will be implemented using open-source tools and frameworks, making it accessible to a wide range of users interested in cybersecurity research.
+
 ## Key Features
 
 * **Multi-Agent System:** Utilizes a network of intelligent agents for attraction, engagement, analysis, and alerting.
