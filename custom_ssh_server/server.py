@@ -3,24 +3,55 @@ import threading
 import paramiko
 import paramiko.common
 
-host_key = paramiko.RSAKey.generate(2048)
+key_file = "server.key"
+
+try:
+    host_key = paramiko.RSAKey(filename=key_file)
+except FileNotFoundError:
+    print(f"{key_file} not found. Generating a new RSA key...")
+    host_key = paramiko.RSAKey.generate(2048)
+    host_key.write_private_key_file(key_file)
+    print(f"New RSA key generated and saved to {key_file}.")
 
 
 class Server(paramiko.ServerInterface):
+    def __init__(self):
+        self.event = threading.Event()
+
     def check_channel_request(self, kind, chanid):
-        if kind == "session":
-            return paramiko.common.OPEN_SUCCEEDED
-        return paramiko.common.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
+        return paramiko.common.OPEN_SUCCEEDED
+
+    def get_allowed_auths(self, username):
+        return "none"
+
+    def check_auth_none(self, username):
+        return paramiko.common.AUTH_SUCCESSFUL
 
     def check_auth_password(self, username, password):
-        if username == "testuser" and password == "testpass":
-            return paramiko.common.AUTH_SUCCESSFUL
+        return paramiko.common.AUTH_SUCCESSFUL
+
+    def check_auth_publickey(self, username, key):
+        return paramiko.common.AUTH_SUCCESSFUL
+
+    def check_auth_interactive(self, username, submethods):
         return paramiko.common.AUTH_FAILED
+
+    def check_auth_interactive_response(self, responses):
+        return paramiko.common.AUTH_FAILED
+
+    def check_channel_shell_request(self, channel):
+        self.event.set()
+        return True
+
+    # def check_channel_pty_request(
+    #     self, channel, term, width, height, pixelwidth, pixelheight, modes
+    # ):
+    #     return True
 
 
 def handle_connection(client_socket):
     transport = paramiko.Transport(client_socket)
-    transport.add_server_key(paramiko.RSAKey.generate(2048))
+    transport.add_server_key(host_key)
 
     server = Server()
     try:
@@ -31,21 +62,20 @@ def handle_connection(client_socket):
         return
 
     # Accept channel request from the client
-    chan = transport.accept(20)
+    chan = transport.accept()
     if chan is None:
         print("No channel request.")
         transport.close()
         return
 
-    chan.send(b"This is a custom SSH Server > .\n")
     try:
         while True:
-            chan.send(b"Type something (or 'exit' to quit): ")
+            chan.sendall("ubuntu@localhost:~/ $".encode())
             data = chan.recv(1024).decode("utf-8").strip()
             if not data or data.lower() == "exit":
-                chan.send(b"Goodbye!\n")
+                chan.send("Goodbye!\n".encode())
                 break
-            chan.send(b"You said: {data}\n")
+            chan.send(f"You said: {data}\n".encode())
     except Exception as e:
         print(f"Connection error: {e}")
     finally:
